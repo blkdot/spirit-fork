@@ -94,16 +94,16 @@ describe("Liquid Router", () => {
     // );
     // console.log("ADDLIQUIDITYETH Result:", result);
 
-    let result = await router.connect(whaleSigner).addLiquidity(
-      spirit,
-      mim,
-      getBigNumber(85, 18),
-      getBigNumber(85, 18),
-      1,
-      1,
-      whale,
-      Date.now() + 60 * 60
-    );
-    console.log("ADDLIQUIDITY Result:", result);
+    // let result = await router.connect(whaleSigner).addLiquidity(
+    //   spirit,
+    //   mim,
+    //   getBigNumber(85, 18),
+    //   getBigNumber(85, 18),
+    //   1,
+    //   1,
+    //   whale,
+    //   Date.now() + 60 * 60
+    // );
+    // console.log("ADDLIQUIDITY Result:", result);
   });
 });
