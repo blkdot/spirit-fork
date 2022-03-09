@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.12;
 
 // import "hardhat/console.sol";
@@ -55,6 +56,10 @@ contract LiquidRouter{
     {
         return ISpiritRouter(SPIRITSWAP_ROUTER).getAmountsIn(amountOut, path);
     }
+    function getAmountsOut(uint256 amountIn, address[] memory path) external view returns (uint256[] memory amounts)
+    {
+        return ISpiritRouter(SPIRITSWAP_ROUTER).getAmountsOut(amountIn, path);
+    }
     function addLiquidityETH(
         address token,
         uint amountTokenDesired,
@@ -77,5 +82,27 @@ contract LiquidRouter{
     ) external returns (uint amountA, uint amountB, uint liquidity) {
         return ISpiritRouter(SPIRITSWAP_ROUTER).addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline);
     }
+    function getPair(
+        address tokenA,
+        address tokenB
+    ) external returns (address pairAddress) {
+        return pairFor(ISpiritRouter(SPIRITSWAP_ROUTER).factory(), tokenA, tokenB);
+    }
+    // returns sorted token addresses, used to handle return values from pairs sorted in this order
+    function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
+        require(tokenA != tokenB, 'SpiritLibrary: IDENTICAL_ADDRESSES');
+        (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        require(token0 != address(0), 'SpiritLibrary: ZERO_ADDRESS');
+    }
 
+    // calculates the CREATE2 address for a pair without making any external calls
+    function pairFor(address factory, address tokenA, address tokenB) internal pure returns (address pair) {
+        (address token0, address token1) = sortTokens(tokenA, tokenB);
+        pair = address(uint(keccak256(abi.encodePacked(
+                hex'ff',
+                factory,
+                keccak256(abi.encodePacked(token0, token1)),
+                hex'e242e798f6cee26a9cb0bbf24653bf066e5356ffeac160907fe2cc108e238617' // init code hash
+            ))));
+    }
 }
