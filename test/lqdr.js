@@ -5,20 +5,12 @@ const { getBigNumber } = require("./utils");
 
 describe("Liquid Router", () => {
   let provider;
-  let LiquidRouter, LiquidFactory, signers, owner, addr1, addr2, router, factory, erc20;
-  let WethToken, WrappedETH;       
-  const weth = `0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2`;
+  let LiquidRouter, signers, owner, router, factory, erc20;
   beforeEach(async () => {
     signers = await ethers.getSigners();
     [owner] = await ethers.getSigners();
-    //addr1 = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
-    addr2 = "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc";
     provider = ethers.getDefaultProvider();
 
-    // LiquidFactory = await ethers.getContractFactory("LiquidFactory", owner);
-    // factory = await LiquidFactory.deploy('0xDE678B4CE5599D0196463F4562e718fB90706A36', false);
-    // await factory.deployed();
-    // console.log(factory.address);
     LiquidRouter = await ethers.getContractFactory("LiquidRouter");
     router = await LiquidRouter.deploy();
     await router.deployed();

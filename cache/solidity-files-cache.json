@@ -1297,8 +1297,8 @@
       ]
     },
     "/home/einsfar/swap/lqdr/contracts/LiquidRouter.sol": {
-      "lastModificationDate": 1646599849322,
-      "contentHash": "0dea436e493c7a7df9b4b57cd3f59b5e",
+      "lastModificationDate": 1646794800539,
+      "contentHash": "aec897daedc90376138fb11b22fb831d",
       "sourceName": "contracts/LiquidRouter.sol",
       "solcConfig": {
         "version": "0.6.12",
@@ -1323,9 +1323,7 @@
           }
         }
       },
-      "imports": [
-        "hardhat/console.sol"
-      ],
+      "imports": [],
       "versionPragmas": [
         "^0.6.12"
       ],
