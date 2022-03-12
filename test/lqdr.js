@@ -31,7 +31,7 @@ describe("Liquid Router", () => {
     const spirit = "0x5Cc61A78F164885776AA610fb0FE1257df78E59B";//Spirit
     const mim = "0x82f0B8B456c1A451378467398982d4834b6829c1";//Magic Internet Money
     const lqdr = "0x10b620b2dbAC4Faa7D7FFD71Da486f5D44cd86f9";//LQDR token
-    
+    const frax = "0xdc301622e621166BD8E82f2cA0A26c13Ad0BE355";//FRAX token
 
     await hre.network.provider.send("hardhat_impersonateAccount", [whale]);
     const whaleSigner = await ethers.provider.getSigner(whale);
@@ -41,6 +41,8 @@ describe("Liquid Router", () => {
     const tokenSpirit = await erc20.attach(spirit);
     const tokenLqdr = await erc20.attach(lqdr);
     const tokenUsdc = await erc20.attach(usdc);
+    const tokenFrax = await erc20.attach(frax);
+
     let fweth = await router.connect(whaleSigner).getWETH();
     console.log(fweth);
     let ether_amount = 5;
@@ -55,6 +57,7 @@ describe("Liquid Router", () => {
         value: getBigNumber(ether_amount, 18)
       }
     );
+    let bal_dai = await tokenDai.balanceOf(whale);
     console.log("DAI token's balance:", await tokenDai.balanceOf(whale));
 
     let amountBDesired = await router.connect(whaleSigner).getAmountsOut(getBigNumber(ether_amount, 18), [fweth, tokenMim.address]);
@@ -103,8 +106,21 @@ describe("Liquid Router", () => {
         value: getBigNumber(ether_amount, 18)
       }
     );
+    let bal_usdc = await tokenUsdc.balanceOf(whale);
     console.log("USDC token's balance:", await tokenUsdc.balanceOf(whale));
     
+    let amountFDesired = await router.connect(whaleSigner).getAmountsOut(getBigNumber(ether_amount, 18), [fweth, tokenFrax.address]);
+    await router.connect(whaleSigner).swapETHForExactTokens(
+      amountFDesired[1],
+      [fweth, tokenFrax.address],
+      whale,
+      Date.now() + 60 * 60,//,   // deadline
+      {
+        value: getBigNumber(ether_amount, 18)
+      }
+    );
+    console.log("Frax token's balance:", await tokenUsdc.balanceOf(whale));
+
     // let resultALE = await router.connect(whaleSigner).addLiquidityETH(
     //   lqdr,
     //   getBigNumber(2, 18),
@@ -117,17 +133,25 @@ describe("Liquid Router", () => {
     //   }
     // );
     // console.log("ADDLIQUIDITYETH Result:", resultALE);
-    // let lpAddr = await router.connect(whaleSigner).getPair(usdc, dai);
-    // let result = await router.connect(whaleSigner).addLiquidity(
-    //   usdc,
-    //   dai,
-    //   getBigNumber(1, 18),
-    //   getBigNumber(1, 18),
-    //   1,
-    //   1,
-    //   whale,
-    //   Date.now() + 60 * 60
-    // );
-    // console.log("ADDLIQUIDITY Result:", result);
+    let pairAddr = await router.connect(whaleSigner).getPair(usdc, dai);
+    console.log(pairAddr);
+    let amounts = await router.connect(whaleSigner).getAmount(usdc, dai, bal_usdc, bal_dai, 1, 1);
+    console.log(amounts['amountA']);
+    await tokenUsdc.connect(whaleSigner).approve(router.address, amounts['amountA']);
+    await tokenDai.connect(whaleSigner).approve(router.address, amounts['amountB']);
+    await router.connect(whaleSigner).safeTransfer(usdc, amounts['amountA']);
+    await router.connect(whaleSigner).safeTransfer(dai, amounts['amountB']);
+    let result = await router.connect(whaleSigner).addLiquidity(
+      usdc,
+      dai,
+      amounts['amountA'],
+      amounts['amountB'],
+      1,
+      1,
+      whale,
+      Date.now() + 60 * 60
+    );
+    console.log("ADDLIQUIDITY Result:", result);
+
   });
 });

@@ -1297,8 +1297,8 @@
       ]
     },
     "/home/einsfar/swap/lqdr/contracts/LiquidRouter.sol": {
-      "lastModificationDate": 1646809174301,
-      "contentHash": "90680ae88541f3ef0ffe6edb2199dd92",
+      "lastModificationDate": 1647054378073,
+      "contentHash": "d8e4afd33e4401665055655ff5fe3c6e",
       "sourceName": "contracts/LiquidRouter.sol",
       "solcConfig": {
         "version": "0.6.12",
@@ -1323,13 +1323,22 @@
           }
         }
       },
-      "imports": [],
+      "imports": [
+        "hardhat/console.sol"
+      ],
       "versionPragmas": [
         "^0.6.12"
       ],
       "artifacts": [
+        "Context",
+        "ERC20",
+        "IERC20",
+        "IPancakePair",
         "ISpiritRouter",
-        "LiquidRouter"
+        "LiquidRouter",
+        "PancakeLibrary",
+        "SafeMath",
+        "TransferHelper"
       ]
     }
   }
