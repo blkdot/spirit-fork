@@ -2,6 +2,7 @@
 
 pragma solidity 0.6.12;
 
+import "hardhat/console.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./libs/IBEP20.sol";
 import "./libs/SafeBEP20.sol";
@@ -177,6 +178,7 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
     function deposit(uint256 _pid, uint256 _amount) public nonReentrant {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
+
         updatePool(_pid);
         if (user.amount > 0) {
             uint256 pending = user.amount.mul(pool.accLqdrPerShare).div(1e12).sub(user.rewardDebt);

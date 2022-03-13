@@ -819,7 +819,10 @@ contract LiquidRouter{
         address to,
         uint deadline
     ) external ensure(deadline) returns (uint amountA, uint amountB, uint liquidity) {
-        return router.addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline);
+        (amountA, amountB, liquidity) = router.addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline);
+        console.log("Amount A:", amountA);
+        console.log("Amount B:", amountB);
+        console.log("Liquidity:", liquidity);
     }
     function getPair(
         address tokenA,

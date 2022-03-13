@@ -3,15 +3,32 @@ const { expect } = require("chai");
 const { expectRevert } = require('@openzeppelin/test-helpers');
 const { getBigNumber } = require("./utils");
 
+const LqdrToken = artifacts.require('LqdrToken');
+const MasterChef = artifacts.require('MasterChefV2');
+const MockBEP20 = artifacts.require('libs/MockBEP20');
+
 describe("Liquid Router", () => {
-  let provider;
-  let LiquidRouter, signers, owner, router, factory, erc20;
+  const dai = "0x8D11eC38a3EB5E956B052f67Da8Bdc9bef8Abf3E";//Dai Stablecoin
+  const usdc = "0x04068DA6C83AFCFA0e13ba15A6696662335D5B75";//ACF Andre Cronje Fantom
+  let provider, router, factory, erc20;
+  let chef, lqdr;
+
+  let LiquidRouter, signers, whaleSigner, owner, whale, minter, fee, dev, alice, bob;
+  let tokenUsdc, tokenDai;
+  let addLiquidityResult;
   beforeEach(async () => {
     signers = await ethers.getSigners();
     [owner] = await ethers.getSigners();
+    whale = signers[1].address;
+    minter = signers[1].address;
+    dev = signers[3].address;
+    fee = signers[4].address;
+    alice = signers[5].address;
+    bob = signers[6].address;
+
     provider = ethers.getDefaultProvider();
 
-    LiquidRouter = await ethers.getContractFactory("LiquidRouter");
+    LiquidRouter = await ethers.getContractFactory("LiquidRouter", signers[1]);
     router = await LiquidRouter.deploy();
     await router.deployed();
     
@@ -19,28 +36,28 @@ describe("Liquid Router", () => {
       "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20",
       ethers.constants.AddressZero
     );
-    
+
+    lqdr = await LqdrToken.new({ from: minter });
+    chef = await MasterChef.new(lqdr.address, dev, fee, '1000', '100', { from: minter });
+    await lqdr.transferOwnership(chef.address, { from: minter });  
   });
 
-  it("Should check the addliquidity.", async function () {
-    const whale = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";//account 1
+  it("Should check the addliquidity and create LP token.", async function () {
+    
     const to = "0xAdf9319359718fa2320Af2CA96d7Fc024329c928";
-
-    const dai = "0x8D11eC38a3EB5E956B052f67Da8Bdc9bef8Abf3E";//Dai Stablecoin
-    const usdc = "0x04068DA6C83AFCFA0e13ba15A6696662335D5B75";//ACF Andre Cronje Fantom
     const spirit = "0x5Cc61A78F164885776AA610fb0FE1257df78E59B";//Spirit
     const mim = "0x82f0B8B456c1A451378467398982d4834b6829c1";//Magic Internet Money
     const lqdr = "0x10b620b2dbAC4Faa7D7FFD71Da486f5D44cd86f9";//LQDR token
     const frax = "0xdc301622e621166BD8E82f2cA0A26c13Ad0BE355";//FRAX token
 
     await hre.network.provider.send("hardhat_impersonateAccount", [whale]);
-    const whaleSigner = await ethers.provider.getSigner(whale);
+    whaleSigner = await ethers.provider.getSigner(whale);
 
-    const tokenDai = await erc20.attach(dai);
+    tokenDai = await erc20.attach(dai);
+    tokenUsdc = await erc20.attach(usdc);
     const tokenMim = await erc20.attach(mim);
     const tokenSpirit = await erc20.attach(spirit);
     const tokenLqdr = await erc20.attach(lqdr);
-    const tokenUsdc = await erc20.attach(usdc);
     const tokenFrax = await erc20.attach(frax);
 
     let fweth = await router.connect(whaleSigner).getWETH();
@@ -133,15 +150,15 @@ describe("Liquid Router", () => {
     //   }
     // );
     // console.log("ADDLIQUIDITYETH Result:", resultALE);
-    let pairAddr = await router.connect(whaleSigner).getPair(usdc, dai);
-    console.log(pairAddr);
+    
+    
     let amounts = await router.connect(whaleSigner).getAmount(usdc, dai, bal_usdc, bal_dai, 1, 1);
     console.log(amounts['amountA']);
     await tokenUsdc.connect(whaleSigner).approve(router.address, amounts['amountA']);
     await tokenDai.connect(whaleSigner).approve(router.address, amounts['amountB']);
     await router.connect(whaleSigner).safeTransfer(usdc, amounts['amountA']);
     await router.connect(whaleSigner).safeTransfer(dai, amounts['amountB']);
-    let result = await router.connect(whaleSigner).addLiquidity(
+    addLiquidityResult = await router.connect(whaleSigner).addLiquidity(
       usdc,
       dai,
       amounts['amountA'],
@@ -151,7 +168,48 @@ describe("Liquid Router", () => {
       whale,
       Date.now() + 60 * 60
     );
-    console.log("ADDLIQUIDITY Result:", result);
+    //console.log("ADDLIQUIDITY Result:", addLiquidityResult);
+    
+  });
+  it("Should add the created LP in the MasterChef pool", async function () {
+    await hre.network.provider.send("hardhat_impersonateAccount", [whale]);
+    whaleSigner = await ethers.provider.getSigner(whale);
+    let pairAddr = await router.connect(whaleSigner).getPair(usdc, dai);
+    let lpToken = await erc20.attach(pairAddr);
+    console.log("SPIRIT LP(USDC/DAI) token's balance:", await lpToken.balanceOf(whale));
+    let bal = await lpToken.balanceOf(whale);
+
+    await chef.add(parseInt(bal * 0.1), lpToken.address, 100, true, { from: whale });
+    assert.equal((await chef.poolLength()).toString(), "1");
 
   });
+
+  it("Should deposit the created LP in the correct Farm", async function () {
+    await hre.network.provider.send("hardhat_impersonateAccount", [whale]);
+    whaleSigner = await ethers.provider.getSigner(whale);
+    let pairAddr = await router.connect(whaleSigner).getPair(usdc, dai);
+    let lpToken = await erc20.attach(pairAddr);
+
+    console.log("SPIRIT LP(USDC/DAI) token's balance:", await lpToken.balanceOf(whale));
+    let bal = await lpToken.balanceOf(whale);
+
+    await chef.add(parseInt(bal * 0.1), lpToken.address, 100, true, { from: whale });
+    assert.equal((await chef.poolLength()).toString(), "1");
+
+    await lpToken.connect(whaleSigner).approve(alice, 100);
+    await lpToken.connect(whaleSigner).transfer(alice, 100);
+    console.log("Alice's LP Token Amount: ", (await lpToken.balanceOf(alice)).toString());
+
+    await hre.network.provider.send("hardhat_impersonateAccount", [alice]);
+    let aliceSigner = await ethers.provider.getSigner(alice);
+    
+    let aliceBalanceBeforeDeposit = await lpToken.connect(aliceSigner).balanceOf(alice);
+    await lpToken.connect(aliceSigner).approve(chef.address, 100);
+    await chef.deposit(0, 20, { from: alice });
+    await chef.deposit(0, 40, { from: alice });
+    let aliceBalanceAfterDeposit = await lpToken.connect(aliceSigner).balanceOf(alice);
+    assert.equal((aliceBalanceBeforeDeposit - aliceBalanceAfterDeposit).toString(), '60');
+
+  });
+
 });

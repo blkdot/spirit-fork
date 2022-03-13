@@ -256,8 +256,8 @@
       ]
     },
     "/home/einsfar/swap/lqdr/contracts/MasterChefV2.sol": {
-      "lastModificationDate": 1646244358146,
-      "contentHash": "8d2e03fb156e7457aac0a7597c3f143a",
+      "lastModificationDate": 1647202583773,
+      "contentHash": "bf651afcfdb59e4bccf9fa11c27591ba",
       "sourceName": "contracts/MasterChefV2.sol",
       "solcConfig": {
         "version": "0.6.12",
@@ -283,6 +283,7 @@
         }
       },
       "imports": [
+        "hardhat/console.sol",
         "@openzeppelin/contracts/math/SafeMath.sol",
         "./libs/IBEP20.sol",
         "./libs/SafeBEP20.sol",
@@ -446,6 +447,41 @@
       ],
       "artifacts": [
         "MasterChef"
+      ]
+    },
+    "/home/einsfar/swap/lqdr/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
+      "lastModificationDate": 1646246092334,
+      "contentHash": "95e76adf687e1a31a4b8ece4e9bb757a",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.6.0"
+      ],
+      "artifacts": [
+        "IERC20"
       ]
     },
     "/home/einsfar/swap/lqdr/contracts/lottery/Lottery.sol": {
@@ -1191,114 +1227,9 @@
         "Multicall"
       ]
     },
-    "/home/einsfar/swap/lqdr/contracts/Migrations.sol": {
-      "lastModificationDate": 1646244358146,
-      "contentHash": "50b3b1dc92806dc8f604fc8c5c65518f",
-      "sourceName": "contracts/Migrations.sol",
-      "solcConfig": {
-        "version": "0.6.12",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        ">=0.4.22 <0.9.0"
-      ],
-      "artifacts": [
-        "Migrations"
-      ]
-    },
-    "/home/einsfar/swap/lqdr/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
-      "lastModificationDate": 1646246092334,
-      "contentHash": "95e76adf687e1a31a4b8ece4e9bb757a",
-      "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-      "solcConfig": {
-        "version": "0.6.12",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.6.0"
-      ],
-      "artifacts": [
-        "IERC20"
-      ]
-    },
-    "/home/einsfar/swap/lqdr/node_modules/hardhat/console.sol": {
-      "lastModificationDate": 1646244567038,
-      "contentHash": "cc4777addd464ea56fa35b1c45df0591",
-      "sourceName": "hardhat/console.sol",
-      "solcConfig": {
-        "version": "0.6.12",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        ">=0.4.22 <0.9.0"
-      ],
-      "artifacts": [
-        "console"
-      ]
-    },
     "/home/einsfar/swap/lqdr/contracts/LiquidRouter.sol": {
-      "lastModificationDate": 1647054378073,
-      "contentHash": "d8e4afd33e4401665055655ff5fe3c6e",
+      "lastModificationDate": 1647134800398,
+      "contentHash": "7c854b5dbe27e69c7aa6bf9765c83a2b",
       "sourceName": "contracts/LiquidRouter.sol",
       "solcConfig": {
         "version": "0.6.12",
@@ -1339,6 +1270,76 @@
         "PancakeLibrary",
         "SafeMath",
         "TransferHelper"
+      ]
+    },
+    "/home/einsfar/swap/lqdr/node_modules/hardhat/console.sol": {
+      "lastModificationDate": 1646244567038,
+      "contentHash": "cc4777addd464ea56fa35b1c45df0591",
+      "sourceName": "hardhat/console.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.4.22 <0.9.0"
+      ],
+      "artifacts": [
+        "console"
+      ]
+    },
+    "/home/einsfar/swap/lqdr/contracts/Migrations.sol": {
+      "lastModificationDate": 1646244358146,
+      "contentHash": "50b3b1dc92806dc8f604fc8c5c65518f",
+      "sourceName": "contracts/Migrations.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.4.22 <0.9.0"
+      ],
+      "artifacts": [
+        "Migrations"
       ]
     }
   }
