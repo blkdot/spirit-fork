@@ -184,7 +184,7 @@ describe("Liquid Router", () => {
 
   });
 
-  it("Should deposit the created LP in the correct Farm", async function () {
+  it("Should deposit and withdraw the created LP in the correct Farm", async function () {
     await hre.network.provider.send("hardhat_impersonateAccount", [whale]);
     whaleSigner = await ethers.provider.getSigner(whale);
     let pairAddr = await router.connect(whaleSigner).getPair(usdc, dai);
@@ -209,6 +209,11 @@ describe("Liquid Router", () => {
     await chef.deposit(0, 40, { from: alice });
     let aliceBalanceAfterDeposit = await lpToken.connect(aliceSigner).balanceOf(alice);
     assert.equal((aliceBalanceBeforeDeposit - aliceBalanceAfterDeposit).toString(), '60');
+    
+    await chef.withdraw(0, '10', { from: alice });
+    let aliceBalanceAfterWithdraw = await lpToken.connect(aliceSigner).balanceOf(alice);
+    assert.equal((aliceBalanceBeforeDeposit - aliceBalanceAfterWithdraw).toString(), '50');
+
 
   });
 
