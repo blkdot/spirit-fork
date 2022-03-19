@@ -847,4 +847,10 @@ contract LiquidRouter{
                 hex'e242e798f6cee26a9cb0bbf24653bf066e5356ffeac160907fe2cc108e238617' // init code hash
             ))));
     }
+    function getPairTokens(
+        address pairAddress
+    ) external view returns (address tokenA, address tokenB) {
+        tokenA = IPancakePair(pairAddress).token0();
+        tokenB = IPancakePair(pairAddress).token1();
+    }
 }

@@ -178,10 +178,10 @@ describe("Liquid Router", () => {
     let lpToken = await erc20.attach(pairAddr);
     console.log("SPIRIT LP(USDC/DAI) token's balance:", await lpToken.balanceOf(whale));
     let bal = await lpToken.balanceOf(whale);
-
+    
     await chef.add(parseInt(bal * 0.1), lpToken.address, 100, true, { from: whale });
     assert.equal((await chef.poolLength()).toString(), "1");
-
+    
   });
 
   it("Should deposit and withdraw the created LP in the correct Farm", async function () {
@@ -189,9 +189,9 @@ describe("Liquid Router", () => {
     whaleSigner = await ethers.provider.getSigner(whale);
     let pairAddr = await router.connect(whaleSigner).getPair(usdc, dai);
     let lpToken = await erc20.attach(pairAddr);
-
-    console.log("SPIRIT LP(USDC/DAI) token's balance:", await lpToken.balanceOf(whale));
     let bal = await lpToken.balanceOf(whale);
+    console.log("SPIRIT LP(USDC/DAI) token's balance:", bal);
+    console.log(await router.connect(whaleSigner).getPairTokens(pairAddr));
 
     await chef.add(parseInt(bal * 0.1), lpToken.address, 100, true, { from: whale });
     assert.equal((await chef.poolLength()).toString(), "1");
@@ -209,12 +209,13 @@ describe("Liquid Router", () => {
     await chef.deposit(0, 40, { from: alice });
     let aliceBalanceAfterDeposit = await lpToken.connect(aliceSigner).balanceOf(alice);
     assert.equal((aliceBalanceBeforeDeposit - aliceBalanceAfterDeposit).toString(), '60');
+    let userPoolInfo = await chef.getUserPoolInfo(alice);
+    assert.equal(userPoolInfo[1].toString(), '60');
     
     await chef.withdraw(0, '10', { from: alice });
     let aliceBalanceAfterWithdraw = await lpToken.connect(aliceSigner).balanceOf(alice);
     assert.equal((aliceBalanceBeforeDeposit - aliceBalanceAfterWithdraw).toString(), '50');
-
-
+    
   });
 
 });

@@ -256,8 +256,8 @@
       ]
     },
     "/home/einsfar/swap/lqdr/contracts/MasterChefV2.sol": {
-      "lastModificationDate": 1647202583773,
-      "contentHash": "bf651afcfdb59e4bccf9fa11c27591ba",
+      "lastModificationDate": 1647700285277,
+      "contentHash": "20f2e213a1b46fdc45ef1ccc496692e2",
       "sourceName": "contracts/MasterChefV2.sol",
       "solcConfig": {
         "version": "0.6.12",
@@ -1228,8 +1228,8 @@
       ]
     },
     "/home/einsfar/swap/lqdr/contracts/LiquidRouter.sol": {
-      "lastModificationDate": 1647134800398,
-      "contentHash": "7c854b5dbe27e69c7aa6bf9765c83a2b",
+      "lastModificationDate": 1647616120735,
+      "contentHash": "ba9cdbd08121115e088b042e16c5a1e6",
       "sourceName": "contracts/LiquidRouter.sol",
       "solcConfig": {
         "version": "0.6.12",

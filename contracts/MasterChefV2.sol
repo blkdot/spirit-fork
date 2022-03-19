@@ -260,4 +260,28 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
         lqdrPerBlock = _lqdrPerBlock;
         emit UpdateEmissionRate(msg.sender, _lqdrPerBlock);
     }
+
+    function getUserPoolInfo(address _user) public view returns (address[] memory, uint256[] memory, uint256[] memory){
+        uint256 length = poolInfo.length;
+        uint userDepositCount = 0;
+        for (uint256 pid = 0; pid < length; pid++) {
+            UserInfo storage user = userInfo[pid][_user];
+            if (user.amount > 0){
+                userDepositCount++;
+            }
+        }
+        address[] memory tokens = new address[](userDepositCount);
+        uint256[] memory amounts = new uint256[](userDepositCount);
+        uint256[] memory rewards = new uint256[](userDepositCount);
+        uint index = 0;
+        for (uint256 pid = 0; pid < length; pid++) {
+            if (userInfo[pid][_user].amount > 0){
+                tokens[index] = address(poolInfo[pid].lpToken);
+                amounts[index] = userInfo[pid][_user].amount;
+                rewards[index] = userInfo[pid][_user].rewardDebt;
+                index++;
+            }
+        }
+        return (tokens, amounts, rewards);
+    }
 }
