@@ -4,14 +4,17 @@ const { expectRevert } = require('@openzeppelin/test-helpers');
 const { getBigNumber } = require("./utils");
 
 const LqdrToken = artifacts.require('LqdrToken');
+const LqdrReferral = artifacts.require('LqdrReferral');
 const MasterChef = artifacts.require('MasterChefV2');
 const MockBEP20 = artifacts.require('libs/MockBEP20');
 
 describe("Liquid Router", () => {
   const dai = "0x8D11eC38a3EB5E956B052f67Da8Bdc9bef8Abf3E";//Dai Stablecoin
   const usdc = "0x04068DA6C83AFCFA0e13ba15A6696662335D5B75";//ACF Andre Cronje Fantom
+  
+
   let provider, router, factory, erc20;
-  let chef, lqdr;
+  let chef, lqdr, referral;
 
   let LiquidRouter, signers, whaleSigner, owner, whale, minter, fee, dev, alice, bob;
   let tokenUsdc, tokenDai;
@@ -38,8 +41,12 @@ describe("Liquid Router", () => {
     );
 
     lqdr = await LqdrToken.new({ from: minter });
-    chef = await MasterChef.new(lqdr.address, dev, fee, '1000', '100', { from: minter });
-    await lqdr.transferOwnership(chef.address, { from: minter });  
+    referral = await LqdrReferral.new({from: minter});
+    chef = await MasterChef.new(lqdr.address, dev, fee, '1000', '100', bob, { from: minter });
+    await lqdr.transferOwnership(chef.address, { from: minter }); 
+    await referral.approveNextOwner(chef.address, { from: minter }); 
+    await referral.setAdminStatus(chef.address, true, { from: minter });
+    await chef.setRewardReferral(referral.address, { from: minter });
   });
 
   it("Should check the addliquidity and create LP token.", async function () {
@@ -61,7 +68,6 @@ describe("Liquid Router", () => {
     const tokenFrax = await erc20.attach(frax);
 
     let fweth = await router.connect(whaleSigner).getWETH();
-    console.log(fweth);
     let ether_amount = 5;
 
     let amountADesired = await router.connect(whaleSigner).getAmountsOut(getBigNumber(ether_amount, 18), [fweth, tokenDai.address]);
@@ -187,6 +193,7 @@ describe("Liquid Router", () => {
   it("Should deposit and withdraw the created LP in the correct Farm", async function () {
     await hre.network.provider.send("hardhat_impersonateAccount", [whale]);
     whaleSigner = await ethers.provider.getSigner(whale);
+    
     let pairAddr = await router.connect(whaleSigner).getPair(usdc, dai);
     let lpToken = await erc20.attach(pairAddr);
     let bal = await lpToken.balanceOf(whale);
@@ -205,8 +212,8 @@ describe("Liquid Router", () => {
     
     let aliceBalanceBeforeDeposit = await lpToken.connect(aliceSigner).balanceOf(alice);
     await lpToken.connect(aliceSigner).approve(chef.address, 100);
-    await chef.deposit(0, 20, { from: alice });
-    await chef.deposit(0, 40, { from: alice });
+    await chef.deposit(0, 20, bob, { from: alice });
+    await chef.deposit(0, 40, bob, { from: alice });
     let aliceBalanceAfterDeposit = await lpToken.connect(aliceSigner).balanceOf(alice);
     assert.equal((aliceBalanceBeforeDeposit - aliceBalanceAfterDeposit).toString(), '60');
     let userPoolInfo = await chef.getUserPoolInfo(alice);
@@ -216,6 +223,10 @@ describe("Liquid Router", () => {
     let aliceBalanceAfterWithdraw = await lpToken.connect(aliceSigner).balanceOf(alice);
     assert.equal((aliceBalanceBeforeDeposit - aliceBalanceAfterWithdraw).toString(), '50');
     
+    let alice_lqdr_balance = await lqdr.balanceOf(alice);
+    let referral_balance = await lqdr.balanceOf(bob);
+
+    assert.equal(referral_balance.toString(), '20');
   });
 
 });

@@ -11,6 +11,12 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import "./LqdrToken.sol";
 
+interface ILQDRReferral {
+    function setReferrer(address farmer, address referrer) external;
+    function getReferrer(address farmer) external view returns (address);
+    function acceptNextOwner() external;
+}
+
 // MasterChef is the master of Lqdr. He can make Lqdr and he is a fair guy.
 //
 // Note that it's ownable and the owner wields tremendous power. The ownership
@@ -37,6 +43,7 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
         //   2. User receives the pending reward sent to his/her address.
         //   3. User's `amount` gets updated.
         //   4. User's `rewardDebt` gets updated.
+        uint256 accumulatedStakingPower; // will accumulate every time user harvest
     }
 
     // Info of each pool.
@@ -58,6 +65,11 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
     uint256 public constant BONUS_MULTIPLIER = 1;
     // Deposit Fee address
     address public feeAddress;
+    //Referral address
+    address public rewardReferral;
+    uint256 public constant REFERRAL_COMMISSION_PERCENT = 1;
+    // InsuranceFund address.
+    address public insuranceFundAddr;
 
     // Info of each pool.
     PoolInfo[] public poolInfo;
@@ -80,13 +92,15 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
         address _devaddr,
         address _feeAddress,
         uint256 _lqdrPerBlock,
-        uint256 _startBlock
+        uint256 _startBlock,
+        address _insuranceFundAddr
     ) public {
         lqdr = _lqdr;
         devaddr = _devaddr;
         feeAddress = _feeAddress;
         lqdrPerBlock = _lqdrPerBlock;
         startBlock = _startBlock;
+        insuranceFundAddr = _insuranceFundAddr;
     }
 
     function poolLength() external view returns (uint256) {
@@ -126,6 +140,17 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
         totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
         poolInfo[_pid].allocPoint = _allocPoint;
         poolInfo[_pid].depositFeeBP = _depositFeeBP;
+    }
+
+    function setRewardReferral(address _rewardReferral) external onlyOwner {
+        rewardReferral = _rewardReferral;
+        ILQDRReferral(rewardReferral).acceptNextOwner();
+    }
+
+    // Update insuranceFund by the previous insuranceFund contract.
+    function setInsuranceFundAddr(address _insuranceFundAddr) public {
+        require(msg.sender == insuranceFundAddr, "insuranceFund: wut?");
+        insuranceFundAddr = _insuranceFundAddr;
     }
 
     // Return reward multiplier over the given _from to _to block.
@@ -175,15 +200,31 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
     }
 
     // Deposit LP tokens to MasterChef for LQDR allocation.
-    function deposit(uint256 _pid, uint256 _amount) public nonReentrant {
+    function deposit(uint256 _pid, uint256 _amount, address _referrer) public nonReentrant {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
 
         updatePool(_pid);
+        if (rewardReferral != address(0) && _referrer != address(0)) {
+            require(_referrer != msg.sender, "You cannot refer yourself.");
+            ILQDRReferral(rewardReferral).setReferrer(msg.sender, _referrer);
+        }
+
         if (user.amount > 0) {
             uint256 pending = user.amount.mul(pool.accLqdrPerShare).div(1e12).sub(user.rewardDebt);
             if (pending > 0) {
-                safeLqdrTransfer(msg.sender, pending);
+                user.accumulatedStakingPower = user.accumulatedStakingPower.add(pending);
+                uint256 actualPaid = pending.mul(100 - REFERRAL_COMMISSION_PERCENT).div(100); // 99%
+                uint256 commission = pending - actualPaid; // 1%
+                safeLqdrTransfer(msg.sender, actualPaid);
+                if (rewardReferral != address(0)) {
+                    _referrer = ILQDRReferral(rewardReferral).getReferrer(msg.sender);
+                }
+                if (_referrer != address(0)) { // send commission to referrer
+                    safeLqdrTransfer(_referrer, commission);
+                } else { // send commission to insuranceFundAddr
+                    safeLqdrTransfer(insuranceFundAddr, commission);
+                }
             }
         }
         if (_amount > 0) {
@@ -208,7 +249,20 @@ contract MasterChefV2 is Ownable, ReentrancyGuard {
         updatePool(_pid);
         uint256 pending = user.amount.mul(pool.accLqdrPerShare).div(1e12).sub(user.rewardDebt);
         if (pending > 0) {
-            safeLqdrTransfer(msg.sender, pending);
+            user.accumulatedStakingPower = user.accumulatedStakingPower.add(pending);
+            uint256 actualPaid = pending.mul(100 - REFERRAL_COMMISSION_PERCENT).div(100); // 99%
+            uint256 commission = pending - actualPaid; // 1%
+            safeLqdrTransfer(msg.sender, actualPaid);
+            address _referrer = address(0);
+            if (rewardReferral != address(0)) {
+                _referrer = ILQDRReferral(rewardReferral).getReferrer(msg.sender);
+            }
+            if (_referrer != address(0)) { // send commission to referrer
+                console.log("User commission2:", commission);
+                safeLqdrTransfer(_referrer, commission);
+            } else { // send commission to insuranceFundAddr
+                safeLqdrTransfer(insuranceFundAddr, commission);
+            }
         }
         if (_amount > 0) {
             user.amount = user.amount.sub(_amount);
